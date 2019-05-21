@@ -62,16 +62,24 @@ object executivesummary {
     //Outbound
     val outbounddf = spark.read.format("csv").option("header","true").option("inferSchema","true")
     .load("file:///C:/Users/Shariva/Desktop/Naveens Task/outbound.csv")
-//    outbounddf.show()
     
     val outboundrdd = outbounddf.rdd
     
-    outboundrdd.collect.foreach(x => 
+    if(outboundrdd.isEmpty()) {
+      val dummyRows = Seq(Row("Outbound",null,null,null),Row("",0,"",0.00)) 
+      val mytmprdd = spark.sparkContext.parallelize(dummyRows); 
+      spark.createDataFrame(mytmprdd,manualschema).createOrReplaceTempView("outboundtable");
+    }
+    else {
+      outboundrdd.collect.foreach(x => 
       {  
-        val dummyRows = Seq(Row("Outbound",null,null,null),Row("Domestic Switched",x(1),x(2),x(3)),Row("Domestic Dedicated",x(4),x(5),x(6)),Row("International(including Canada & Mexico",x(7),x(8),x(9))); 
+        val dummyRows = Seq(Row("Outbound",null,null,null),Row("Domestic Switched",x(1),x(2),x(3)),Row("Domestic Dedicated",x(4),x(5),x(6)),Row("International(including Canada & Mexico",x(7),x(8),x(9)))
         val mytmprdd = spark.sparkContext.parallelize(dummyRows); 
         spark.createDataFrame(mytmprdd,manualschema).createOrReplaceTempView("outboundtable");
       })
+    }
+    
+    
     
     //Inbound
     val indf = spark.read.format("csv").option("header","true").option("inferSchema","true")
@@ -80,8 +88,20 @@ object executivesummary {
     
     val inrdd = indf.rdd
     
-    inrdd.collect.foreach(x => { println(x); val dummyRows = Seq(Row("Inbound",null,null,null),Row("Domestic Switched",x(1),x(2),x(3)),Row("Domestic Dedicated",x(4),x(5),x(6)),Row("International(including Canada & Mexico",x(7),x(8),x(9))); val mytmprdd = spark.sparkContext.parallelize(dummyRows); spark.createDataFrame(mytmprdd,manualschema).createOrReplaceTempView("inboundtable");
+    if(inrdd.isEmpty()){
+      val dummyRows = Seq(Row("Inbound",null,null,null),Row("",0,"",0.00))
+      //,Row("Domestic Dedicated",x(4),x(5),x(6)),Row("International(including Canada & Mexico",x(7),x(8),x(9))); 
+      val mytmprdd = spark.sparkContext.parallelize(dummyRows); 
+      spark.createDataFrame(mytmprdd,manualschema).createOrReplaceTempView("inboundtable");
+    }
+    else {
+      inrdd.collect.foreach(x => { 
+      val dummyRows = Seq(Row("Inbound",null,null,null),Row("Domestic Switched",x(1),x(2),x(3)),Row("Domestic Dedicated",x(4),x(5),x(6)),Row("International(including Canada & Mexico",x(7),x(8),x(9))); 
+      val mytmprdd = spark.sparkContext.parallelize(dummyRows); 
+      spark.createDataFrame(mytmprdd,manualschema).createOrReplaceTempView("inboundtable");
     })
+    }
+    
     
     //Directory Assistance
     val ddf = spark.read.format("csv").option("header","true").option("inferSchema","true")
@@ -90,23 +110,40 @@ object executivesummary {
     
     val drdd = ddf.rdd
     
-    drdd.collect.foreach(x => { println(x); val dummyRows = Seq(Row("Directory Assistance",null,null,null),Row("Directory Assistance",x(1),x(2),x(3))); val mytmprdd = spark.sparkContext.parallelize(dummyRows); spark.createDataFrame(mytmprdd,manualschema).createOrReplaceTempView("dstable");
+    if(drdd.isEmpty()){
+      val dummyRows = Seq(Row("Directory Assistance",null,null,null),Row("",0,"",0.00)); 
+      val mytmprdd = spark.sparkContext.parallelize(dummyRows); 
+      spark.createDataFrame(mytmprdd,manualschema).createOrReplaceTempView("dstable");
+    }
+    else {
+      drdd.collect.foreach(x => { 
+      val dummyRows = Seq(Row("Directory Assistance",null,null,null),Row("Directory Assistance",x(1),x(2),x(3))); 
+      val mytmprdd = spark.sparkContext.parallelize(dummyRows); 
+      spark.createDataFrame(mytmprdd,manualschema).createOrReplaceTempView("dstable");
     })
+    }
+    
     
     
     //Calling card
     val ccdf = spark.read.format("csv").option("header","true").option("inferSchema","true")
     .load("file:///C:/Users/Shariva/Desktop/Naveens Task/callingcard.csv")
-//    ccdf.show()
     
     val ccrdd = ccdf.rdd
     
-    ccrdd.collect.foreach(x => { 
-//      println(x); 
+    if(ccrdd.isEmpty()){
+      val dummyRows = Seq(Row("Calling Card",null,null,null),Row("",0,"",0.00)) 
+      val mytmprdd = spark.sparkContext.parallelize(dummyRows); 
+      spark.createDataFrame(mytmprdd,manualschema).createOrReplaceTempView("cctable");
+    }
+    else {
+      ccrdd.collect.foreach(x => { 
       val dummyRows = Seq(Row("Calling Card",null,null,null),Row("Domestic",x(1),x(2),x(3)),Row("International(including Canada & Mexico)",x(4),x(5),x(6)),Row("Directory Assistance",x(7),x(8),x(9))); 
       val mytmprdd = spark.sparkContext.parallelize(dummyRows); 
       spark.createDataFrame(mytmprdd,manualschema).createOrReplaceTempView("cctable");
     })
+    }
+    
     
     //Ring to
     val rtdf = spark.read.format("csv").option("header","true").option("inferSchema","true")
@@ -115,12 +152,19 @@ object executivesummary {
     
     val rtrdd = rtdf.rdd
     
-    rtrdd.collect.foreach(x => { 
-//      println(x); 
-      val dummyRows = Seq(Row("Ring To",null,null,null),Row("Domestic Switched",x(1),x(2),x(3)),Row("Domestic Dedicated",x(4),x(5),x(6)),Row("International(including Canada & Mexico",x(7),x(8),x(9))); 
+    if(rtrdd.isEmpty()){
+      val dummyRows = Seq(Row("Ring To",null,null,null),Row("",0,"",0.00)) 
       val mytmprdd = spark.sparkContext.parallelize(dummyRows); 
       spark.createDataFrame(mytmprdd,manualschema).createOrReplaceTempView("rttable");
-    })
+    }
+    else {
+      rtrdd.collect.foreach(x => {  
+        val dummyRows = Seq(Row("Ring To",null,null,null),Row("Domestic Switched",x(1),x(2),x(3)),Row("Domestic Dedicated",x(4),x(5),x(6)),Row("International(including Canada & Mexico",x(7),x(8),x(9))); 
+        val mytmprdd = spark.sparkContext.parallelize(dummyRows); 
+        spark.createDataFrame(mytmprdd,manualschema).createOrReplaceTempView("rttable");
+      })
+    }
+    
 
 
   val finaldf = sqlContext.sql("select Description, Calls, MinSec,Charges From outboundtable union all select Description, Calls, MinSec,Charges From inboundtable union all select Description, Calls, MinSec,Charges From dstable union all select Description, Calls, MinSec,Charges From cctable union all select Description, Calls, MinSec,Charges From rttable")
@@ -140,12 +184,20 @@ object executivesummary {
     
     val nurdd = nudf.rdd
     
-    nurdd.collect.foreach(x => { 
-//      println(x); 
+    if(nurdd.isEmpty()){
+      val dummyRows = Seq(Row("Non-Usages",null,null),Row("",0.00,0.00))
+      //,Row("Equipment/Other Charges",x(3),x(4)),Row("Dial Services",x(5),x(6)),Row("VPN Services",x(7),x(8))); 
+      val mytmprdd = spark.sparkContext.parallelize(dummyRows); 
+      spark.createDataFrame(mytmprdd,manualschemafornonusage).createOrReplaceTempView("nonusagetable");
+    }
+    else {
+      nurdd.collect.foreach(x => {  
       val dummyRows = Seq(Row("Non-Usages",null,null),Row("Dedicated Services",x(1),x(2)),Row("Equipment/Other Charges",x(3),x(4)),Row("Dial Services",x(5),x(6)),Row("VPN Services",x(7),x(8))); 
       val mytmprdd = spark.sparkContext.parallelize(dummyRows); 
       spark.createDataFrame(mytmprdd,manualschemafornonusage).createOrReplaceTempView("nonusagetable");
     })
+    }
+    
     
     
     val nonusagedf = sqlContext.sql("select Description, NonrecurringCharges, MonthlyCharges from nonusagetable")
